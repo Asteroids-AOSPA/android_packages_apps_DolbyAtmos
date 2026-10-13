@@ -7,6 +7,7 @@
 package co.aospa.dolby
 
 import android.media.audiofx.AudioEffect
+import android.util.Log
 import co.aospa.dolby.DolbyConstants.Companion.dlog
 import co.aospa.dolby.DolbyConstants.DsParam
 import java.util.UUID
@@ -15,16 +16,32 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) :
     AudioEffect(EFFECT_TYPE_NULL, EFFECT_TYPE_DAP, priority, audioSession) {
 
     var dsOn: Boolean
-        get() = getIntParam(EFFECT_PARAM_ENABLE) == 1
+        get() = try {
+            getIntParam(EFFECT_PARAM_ENABLE) == 1
+        } catch (e: Exception) {
+            false
+        }
         set(value) {
-            setIntParam(EFFECT_PARAM_ENABLE, if (value) 1 else 0)
-            enabled = value
+            try {
+                setIntParam(EFFECT_PARAM_ENABLE, if (value) 1 else 0)
+                enabled = value
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to set dsOn=$value", e)
+            }
         }
 
     var profile: Int
-        get() = getIntParam(EFFECT_PARAM_PROFILE)
+        get() = try {
+            getIntParam(EFFECT_PARAM_PROFILE)
+        } catch (e: Exception) {
+            0
+        }
         set(value) {
-            setIntParam(EFFECT_PARAM_PROFILE, value)
+            try {
+                setIntParam(EFFECT_PARAM_PROFILE, value)
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to set profile=$value", e)
+            }
         }
 
     private fun setIntParam(param: Int, value: Int) {
@@ -33,13 +50,29 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) :
         int32ToByteArray(param, buf, 0)
         int32ToByteArray(1, buf, 4)
         int32ToByteArray(value, buf, 8)
-        checkStatus(setParameter(EFFECT_PARAM_CPDP_VALUES, buf))
+        try {
+            val status = setParameter(EFFECT_PARAM_CPDP_VALUES, buf)
+            if (isError(status)) {
+                Log.w(TAG, "setIntParam($param, $value) failed with status $status")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "setIntParam($param, $value) threw exception", e)
+        }
     }
 
     private fun getIntParam(param: Int): Int {
         val buf = ByteArray(12)
         int32ToByteArray(param, buf, 0)
-        checkStatus(getParameter(EFFECT_PARAM_CPDP_VALUES + param, buf))
+        try {
+            val status = getParameter(EFFECT_PARAM_CPDP_VALUES + param, buf)
+            if (isError(status)) {
+                Log.w(TAG, "getIntParam($param) failed with status $status")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "getIntParam($param) threw exception", e)
+            return 0
+        }
         return byteArrayToInt32(buf).also { dlog(TAG, "getIntParam($param): $it") }
     }
 
@@ -57,7 +90,14 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) :
         int32ToByteArray(profile, buf, 8)
         int32ToByteArray(param.id, buf, 12)
         int32ArrayToByteArray(values, buf, 16)
-        checkStatus(setParameter(EFFECT_PARAM_CPDP_VALUES, buf))
+        try {
+            val status = setParameter(EFFECT_PARAM_CPDP_VALUES, buf)
+            if (isError(status)) {
+                Log.w(TAG, "setDapParameter($param, profile=$profile) failed with status $status")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "setDapParameter($param, profile=$profile) threw exception", e)
+        }
     }
 
     fun setDapParameter(param: DsParam, enable: Boolean, profile: Int = this.profile) =
@@ -71,15 +111,24 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) :
         val length = param.length
         val buf = ByteArray((length + 2) * 4)
         val p = (param.id shl 16) + (profile shl 8) + EFFECT_PARAM_GET_PROFILE_PARAMETER
-        checkStatus(getParameter(p, buf))
+        try {
+            val status = getParameter(p, buf)
+            if (isError(status)) {
+                Log.w(TAG, "getDapParameter($param, profile=$profile) failed with status $status")
+                return IntArray(length)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "getDapParameter($param, profile=$profile) threw exception", e)
+            return IntArray(length)
+        }
         return byteArrayToInt32Array(buf, length)
     }
 
     fun getDapParameterBool(param: DsParam, profile: Int = this.profile): Boolean =
-        getDapParameter(param, profile)[0] == 1
+        getDapParameter(param, profile).getOrElse(0) { 0 } == 1
 
     fun getDapParameterInt(param: DsParam, profile: Int = this.profile): Int =
-        getDapParameter(param, profile)[0]
+        getDapParameter(param, profile).getOrElse(0) { 0 }
 
     companion object {
         private const val TAG = "DolbyAudioEffect"

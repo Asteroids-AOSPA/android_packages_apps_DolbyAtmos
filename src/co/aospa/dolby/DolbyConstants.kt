@@ -32,7 +32,8 @@ class DolbyConstants {
         const val PREF_PROFILE = "dolby_profile"
         const val PREF_PRESET = "dolby_preset"
         const val PREF_IEQ = "dolby_ieq"
-        const val PREF_HP_VIRTUALIZER = "dolby_virtualizer"
+        const val PREF_VIRTUALIZER = "dolby_virtualizer"
+        const val PREF_HP_VIRTUALIZER = PREF_VIRTUALIZER
         const val PREF_SPK_VIRTUALIZER = "dolby_spk_virtualizer"
         const val PREF_STEREO = "dolby_stereo"
         const val PREF_DIALOGUE = "dolby_dialogue"
@@ -44,6 +45,7 @@ class DolbyConstants {
             setOf(
                 PREF_PRESET,
                 PREF_IEQ,
+                PREF_VIRTUALIZER,
                 PREF_HP_VIRTUALIZER,
                 PREF_SPK_VIRTUALIZER,
                 PREF_STEREO,

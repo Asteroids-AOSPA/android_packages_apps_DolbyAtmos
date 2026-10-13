@@ -20,6 +20,10 @@ class DolbyPreferenceStore(private val context: Context) : PreferenceDataStore()
 
     private lateinit var profileSharedPrefs: SharedPreferences
 
+    init {
+        profile = 0
+    }
+
     var profile = 0
         set(value) {
             field = value

@@ -8,4 +8,6 @@
     <!-- Whether stereo widening levels are supported -->
     <bool name="dolby_stereo_widening_supported">true</bool>
 
+    <!-- Whether speaker virtualization is supported -->
+    <bool name="dolby_speaker_virtualizer_supported">true</bool>
 </resources>

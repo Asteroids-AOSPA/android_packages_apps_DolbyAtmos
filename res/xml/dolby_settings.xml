@@ -41,12 +41,8 @@
             android:title="@string/dolby_ieq" />
 
         <SwitchPreferenceCompat
-            android:key="dolby_spk_virtualizer"
-            android:title="@string/dolby_spk_virtualizer" />
-
-        <SwitchPreferenceCompat
             android:key="dolby_virtualizer"
-            android:title="@string/dolby_hp_virtualizer" />
+            android:title="@string/dolby_spatial_audio" />
 
         <ListPreference
             android:key="dolby_stereo"
