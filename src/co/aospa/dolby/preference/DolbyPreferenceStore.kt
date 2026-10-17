@@ -20,16 +20,16 @@ class DolbyPreferenceStore(private val context: Context) : PreferenceDataStore()
 
     private lateinit var profileSharedPrefs: SharedPreferences
 
-    init {
-        profile = 0
-    }
-
     var profile = 0
         set(value) {
             field = value
             profileSharedPrefs =
                 context.getSharedPreferences("profile_$value", Context.MODE_PRIVATE)
         }
+
+    init {
+        profile = 0
+    }
 
     private fun getSharedPreferences(key: String) =
         if (DolbyConstants.PROFILE_SPECIFIC_PREFS.contains(key)) {
